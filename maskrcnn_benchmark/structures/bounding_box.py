@@ -4,6 +4,7 @@ import torch
 # transpose
 FLIP_LEFT_RIGHT = 0
 FLIP_TOP_BOTTOM = 1
+ROTATE_90 = 2
 
 
 class BoxList(object):
@@ -134,7 +135,7 @@ class BoxList(object):
           :py:attr:`PIL.Image.ROTATE_180`, :py:attr:`PIL.Image.ROTATE_270`,
           :py:attr:`PIL.Image.TRANSPOSE` or :py:attr:`PIL.Image.TRANSVERSE`.
         """
-        if method not in (FLIP_LEFT_RIGHT, FLIP_TOP_BOTTOM):
+        if method not in (FLIP_LEFT_RIGHT, FLIP_TOP_BOTTOM, ROTATE_90):
             raise NotImplementedError(
                 "Only FLIP_LEFT_RIGHT and FLIP_TOP_BOTTOM implemented"
             )
@@ -152,6 +153,14 @@ class BoxList(object):
             transposed_xmax = xmax
             transposed_ymin = image_height - ymax
             transposed_ymax = image_height - ymin
+        elif method == ROTATE_90:
+            transposed_xmin = image_height - ymax
+            transposed_xmax = image_height - ymin
+            transposed_ymin = xmax
+            transposed_ymax = xmin
+            # print(self.size)
+            self.size = self.size[::-1]
+            # print(self.size)
 
         transposed_boxes = torch.cat(
             (transposed_xmin, transposed_ymin, transposed_xmax, transposed_ymax), dim=-1

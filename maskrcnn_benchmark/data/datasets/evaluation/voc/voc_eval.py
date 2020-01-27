@@ -36,6 +36,15 @@ def do_voc_evaluation(dataset, predictions, output_folder, logger):
         result_str += "{:<16}: {:.4f}\n".format(
             dataset.map_class_id_to_class_name(i), ap
         )
+
+    result_str += "Counting mAE: {:.4f}\n".format(result["mae"])
+    for i, ae in enumerate(result["ae"]):
+        if i == 0:  # skip background
+            continue
+        result_str += "{:<16}: {:.4f}\n".format(
+            dataset.map_class_id_to_class_name(i), ae
+        )
+
     logger.info(result_str)
     if output_folder:
         with open(os.path.join(output_folder, "result.txt"), "w") as fid:
@@ -60,8 +69,36 @@ def eval_detection_voc(pred_boxlists, gt_boxlists, iou_thresh=0.5, use_07_metric
         pred_boxlists=pred_boxlists, gt_boxlists=gt_boxlists, iou_thresh=iou_thresh
     )
     ap = calc_detection_voc_ap(prec, rec, use_07_metric=use_07_metric)
-    return {"ap": ap, "map": np.nanmean(ap)}
+    ae = calc_counting_performance(
+        pred_boxlists=pred_boxlists, gt_boxlists=gt_boxlists, iou_thresh=iou_thresh,
+        nb_classes=len(ap)
+    )
+    return {"ap": ap, "map": np.nanmean(ap), "ae": ae, "mae": np.nanmean(ae[1:])}
 
+    nb_classes = len(result["ap"])
+
+
+def calc_counting_performance(pred_boxlists, gt_boxlists, iou_thresh=0.5, nb_classes=3):
+    """Calculate mean Average Error 
+    """
+    AE = np.zeros(nb_classes)
+    for (pred, gt) in zip(pred_boxlists, gt_boxlists):
+        # get labels prediction
+        pred_scores = pred.get_field("scores").tolist()
+        pred_labels = pred.get_field("labels").tolist()
+        pred_labels = [labels for i, labels in enumerate(
+            pred_labels) if pred_scores[i] > iou_thresh]
+
+        # get labels GT
+        gt_labels = gt.get_field("labels").tolist()
+
+        # Count errors for each classes
+        for i in range(1, nb_classes):
+            if (gt_labels.count(i) > 0):
+                AE[i] += np.abs((pred_labels.count(i) - gt_labels.count(i)) / gt_labels.count(i))
+
+    AE = AE / len(pred_boxlists)
+    return AE
 
 def calc_detection_voc_prec_rec(gt_boxlists, pred_boxlists, iou_thresh=0.5):
     """Calculate precision and recall based on evaluation code of PASCAL VOC.

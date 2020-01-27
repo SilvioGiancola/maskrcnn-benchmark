@@ -3,10 +3,39 @@
 
 import os
 from copy import deepcopy
+from maskrcnn_benchmark.config import cfg
 
 class DatasetCatalog(object):
     DATA_DIR = "datasets"
     DATASETS = {
+        "folder_pill_train": {
+            "data_dir": "/media/giancos/Football/PillDataset/Pill Detection Dataset with annotations",
+            "split": "Training"
+        },
+        "folder_pill_test": {
+            "data_dir": "/media/giancos/Football/PillDataset/Pill Detection Dataset with annotations",
+            "split": "Validation"
+        },
+        "folder_spine_train": {
+            "data_dir": "/media/giancos/Football/Spine/Annotated_March 13_Leica",
+            "split": "Training"
+        },
+        "folder_spine_test": {
+            "data_dir": "/media/giancos/Football/Spine/Annotated_March 13_Leica",
+            "split": "Testing"
+        },
+        "folder_train": {
+            "data_dir": cfg.DATASETS.DATA_DIR,
+            "split": "Training"
+        },
+        "folder_valid": {
+            "data_dir": cfg.DATASETS.DATA_DIR,
+            "split": "Validation"
+        },
+        "folder_test": {
+            "data_dir": cfg.DATASETS.DATA_DIR,
+            "split": "Testing"
+        },
         "coco_2017_train": {
             "img_dir": "coco/train2017",
             "ann_file": "coco/annotations/instances_train2017.json"
@@ -171,6 +200,17 @@ class DatasetCatalog(object):
             )
             return dict(
                 factory="PascalVOCDataset",
+                args=args,
+            )
+        elif "folder" in name:
+            # data_dir = DatasetCatalog.DATA_DIR
+            attrs = DatasetCatalog.DATASETS[name]
+            args = dict(
+                data_dir=attrs["data_dir"],
+                split=attrs["split"],
+            )
+            return dict(
+                factory="FolderDataset",
                 args=args,
             )
         elif "cityscapes" in name:

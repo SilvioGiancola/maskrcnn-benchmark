@@ -1,3 +1,85 @@
+# Silvio update
+
+conda activate maskrcnn_benchmark
+
+## Train
+
+# Striga Seeds
+`data="/media/giancos/Football/Seeds/Striga_Strategy1`
+
+# List model: 
+- R_50_C4_1x
+- R_50_FPN_1x
+- R_101_FPN_1x
+- X_101_32x8d_FPN_1x
+- fbnet
+
+ - ALL of the previous
+`for model in R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x fbnet; do for i in 2 1; do data="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy${i}"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_test',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 20000 OUTPUT_DIR "${data}/output/${model}" SOLVER.CHECKPOINT_PERIOD 1000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 1000 DATALOADER.SIZE_DIVISIBILITY 1 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3; done; done`
+
+
+model=R_50_C4_1x; i=2; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_test',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 20000 OUTPUT_DIR "${data}/output/${model}_rot" SOLVER.CHECKPOINT_PERIOD 1000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 1000 DATALOADER.SIZE_DIVISIBILITY 1
+
+
+# Spine
+`model=R_50_FPN_1x; data="/media/giancos/Football/Spine/Annotated_March 13_Leica"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.TRAIN "('folder_spine_train',)"  DATASETS.TEST "('folder_spine_test',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 2 SOLVER.MAX_ITER 20000 OUTPUT_DIR "${data}/output/${model}" SOLVER.CHECKPOINT_PERIOD 100`
+
+## Test:
+
+LAST EPOCH
+
+```
+model=R_50_FPN_1x
+data="/media/giancos/Football/Spine/Annotated_March 13_Leica"
+CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
+python tools/test_net.py \
+--config-file configs/e2e_faster_rcnn_${model}.yaml \
+DATASETS.TEST "('folder_spine_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}"
+```
+
+ALL EPOCHS
+```
+model=R_50_FPN_1x
+data="/media/giancos/Football/Spine/Annotated_March 13_Leica"
+for i in {0000000..0100000};
+do 
+OUTPUT_DIR="${data}/output/${model}"
+FILE="${OUTPUT_DIR}/model_${i}.pth"
+if test -f "$FILE"; then
+    CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 \
+    python tools/test_net.py \
+    --config-file configs/e2e_faster_rcnn_${model}.yaml \
+    --ckpt "$FILE" \
+    DATASETS.TEST "('folder_spine_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${OUTPUT_DIR}"
+fi
+done | grep "maskrcnn_benchmark.inference INFO: mAP:"
+```
+
+
+## Infer:
+
+```
+model=R_50_FPN_1x
+data="/media/giancos/Football/Spine/Annotated_March 13_Leica"
+CUDA_VISIBLE_DEVICES=2 python demo/infer_net.py \
+--config-file configs/e2e_faster_rcnn_${model}.yaml \
+--ckpt "${data}/output/${model}/model_0000100.pth" \
+DATASETS.TEST "('folder_spine_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output_badsplit/${model}"
+```
+
+
+## Dendrite Spine (Michael):
+|method|mAP|
+|-----|-----|
+|R_50_C4_1x|95.45|
+|R_50_FPN_1x|100.00|
+|R_101_FPN_1x|  |
+|X_101_32x8d_FPN_1x|  |
+|fbnet_chamv1a_600|  |
+|fbnet_600|  |
+|fbnet|  |
+
+
 # Faster R-CNN and Mask R-CNN in PyTorch 1.0
 
 **maskrcnn-benchmark has been deprecated. Please see [detectron2](https://github.com/facebookresearch/detectron2), which includes implementations for all models in maskrcnn-benchmark**

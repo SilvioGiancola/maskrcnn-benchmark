@@ -69,6 +69,9 @@ def do_train(
         iou_types = iou_types + ("keypoints",)
     dataset_names = cfg.DATASETS.TEST
 
+
+    best_val=9e99
+
     for iteration, (images, targets, _) in enumerate(data_loader, start_iter):
         
         if any(len(target) < 1 for target in targets):
@@ -123,8 +126,6 @@ def do_train(
                     memory=torch.cuda.max_memory_allocated() / 1024.0 / 1024.0,
                 )
             )
-        if iteration % checkpoint_period == 0:
-            checkpointer.save("model_{:07d}".format(iteration), **arguments)
         if data_loader_val is not None and test_period > 0 and iteration % test_period == 0:
             meters_val = MetricLogger(delimiter="  ")
             synchronize()
@@ -172,6 +173,17 @@ def do_train(
                     memory=torch.cuda.max_memory_allocated() / 1024.0 / 1024.0,
                 )
             )
+            # print(meters_val.meters["loss"].avg)
+            # print(meters_val.meters["loss"].avg)
+
+            if best_val > meters_val.meters["loss"].avg:
+                best_val = meters_val.meters["loss"].avg
+                # print("new best val", best_val)
+                checkpointer.save("model_bestval", **arguments)
+
+        if iteration % checkpoint_period == 0:
+            checkpointer.save("model_{:07d}".format(iteration), **arguments)
+
         if iteration == max_iter:
             checkpointer.save("model_final", **arguments)
 

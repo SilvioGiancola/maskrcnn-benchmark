@@ -258,7 +258,7 @@ class COCODemo(object):
             prediction.add_field("mask", masks)
         return prediction
 
-    def select_top_predictions(self, predictions):
+    def select_top_predictions(self, predictions, best_only= False):
         """
         Select only predictions which have a `score` > self.confidence_threshold,
         and returns the predictions in descending order of score
@@ -277,6 +277,8 @@ class COCODemo(object):
         predictions = predictions[keep]
         scores = predictions.get_field("scores")
         _, idx = scores.sort(0, descending=True)
+        if best_only:
+            return predictions[idx[:1]]
         return predictions[idx]
 
     def compute_colors_for_labels(self, labels):
@@ -305,7 +307,7 @@ class COCODemo(object):
             box = box.to(torch.int64)
             top_left, bottom_right = box[:2].tolist(), box[2:].tolist()
             image = cv2.rectangle(
-                image, tuple(top_left), tuple(bottom_right), tuple(color), 1
+                image, tuple(top_left), tuple(bottom_right), tuple(color), 10
             )
 
         return image
@@ -401,7 +403,7 @@ class COCODemo(object):
             x, y = box[:2]
             s = template.format(label, score)
             cv2.putText(
-                image, s, (x, y), cv2.FONT_HERSHEY_SIMPLEX, .5, (255, 255, 255), 1
+                image, s, (x, y), cv2.FONT_HERSHEY_SIMPLEX, 5, (255, 255, 255), 1
             )
 
         return image
