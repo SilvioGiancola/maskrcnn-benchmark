@@ -13,15 +13,15 @@ from predictor import COCODemo
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
 
-DATA_FOLDER = "/media/giancos/Football/CloudLabeling/"
 
 class FlaskServer(object):
     def __init__(self, args):
         self.model = None
         self.PORT = args.PORT
         self.HOST = args.HOST
+        self.args = args
 
-    def setup(self, args):
+    def setup(self):
         self.project = "Seeds_Striga_Strategy2"  # project
         self.architecture = "R_50_C4_1x"  # architecture for FasterRCNN
         self.model = None # FasterRCNN model
@@ -43,12 +43,13 @@ def home():
 
 @app.route("/api/list_projects", methods=['POST'])
 def list_project():
-    return os.listdir(DATA_FOLDER)  # ["Seeds", "Pills", "Spine", "Fish"]
+    return os.listdir(args.DATA_FOLDER)  # ["Seeds", "Pills", "Spine", "Fish"]
 
 
 @app.route("/api/list_architecture", methods=['POST'])
 def list_architecture():
-    folder_architectures = os.path.join(DATA_FOLDER, server.project, "output")
+    folder_architectures = os.path.join(
+        args.DATA_FOLDER, server.project, "output")
     return os.listdir(folder_architectures)
 
 
@@ -92,7 +93,7 @@ def initialize_model():
 
     cfg.merge_from_file(config_file)
 
-    cfg.DATASETS.DATA_DIR = os.path.join(DATA_FOLDER, server.project)
+    cfg.DATASETS.DATA_DIR = os.path.join(args.DATA_FOLDER, server.project)
     cfg.DATASETS.TRAIN = ['folder_train']
     cfg.DATASETS.TEST = ['folder_test']
     cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES=3
@@ -164,6 +165,10 @@ if __name__ == "__main__":
     parser.add_argument("--PORT", type=int, default=5000,
                         help="commmunication port")
 
+    parser.add_argument("--DATA_FOLDER", type=str, 
+                            default="/media/giancos/Football/CloudLabeling/",
+                        help="main folder shere data and model is stored")
+
     parser.add_argument(
         '--GPU',
         required=False,
@@ -178,4 +183,4 @@ if __name__ == "__main__":
         os.environ["CUDA_VISIBLE_DEVICES"] = str(args.GPU)
 
     server = FlaskServer(args)
-    server.setup(sys.argv[1:])
+    server.setup()
