@@ -99,17 +99,19 @@ def initialize_model():
     cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES=3
     cfg.TEST.DETECTIONS_PER_IMG=200
     cfg.MODEL.ROI_HEADS.DETECTIONS_PER_IMG=200
+    # cfg.TEST.BBOX_AUG.ENABLED=True
+    # cfg.TEST.BBOX_AUG.H_FLIP=True
     cfg.OUTPUT_DIR = os.path.join(
         cfg.DATASETS.DATA_DIR, "output", server.architecture)
-        # cfg.DATASETS.DATA_DIR, "output", server.architecture)
+        # cfg.DATASETS.DATA_DIR, "output", "server")
 
     # cfg.freeze()
 
-    print(cfg.OUTPUT_DIR + "/model_bestval.pth")
+    # print(cfg.OUTPUT_DIR + "/model_bestval.pth")
     server.model = COCODemo(
         cfg,
         min_image_size=800,
-        confidence_threshold=0.5,
+        confidence_threshold=0.7,
         weight_loading=cfg.OUTPUT_DIR + "/model_bestval.pth",
     )
 
@@ -140,10 +142,12 @@ def predict():
 
         # compute prediction
         predictions = server.model.compute_prediction(image_bytes)
-        predictions = server.model.select_top_predictions(predictions)
+        # predictions = server.model.select_top_predictions(predictions)
         print(predictions)
                    
         boxes = predictions.bbox.numpy().tolist()
+        # print(predictions.get_field("labels").numpy().tolist())
+        # print(server.model.CATEGORIES)
         labels_words = [server.model.CATEGORIES[label]
                         for label in predictions.get_field("labels").numpy().tolist()]
         scores = predictions.get_field("scores").numpy().tolist()
