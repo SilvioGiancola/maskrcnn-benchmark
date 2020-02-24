@@ -33,6 +33,7 @@ _C.MODEL.CLS_AGNOSTIC_BBOX_REG = False
 # the path in paths_catalog. Else, it will use it as the specified absolute
 # path
 _C.MODEL.WEIGHT = ""
+_C.MODEL.RESET_LAST_LAYER = False
 
 
 # -----------------------------------------------------------------------------
@@ -395,6 +396,7 @@ _C.MODEL.FBNET.RPN_BN_TYPE = ""
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
 _C.SOLVER.MAX_ITER = 40000
+_C.SOLVER.START_ITER = -1
 
 _C.SOLVER.BASE_LR = 0.001
 _C.SOLVER.BIAS_LR_FACTOR = 2

@@ -52,7 +52,8 @@ class FolderDataset(torch.utils.data.Dataset):
                           "Omancillin": "Omacillin",
                           "Falgyl": "Flagyl",
                           "Geminated": "Germinated",
-                          "Non-geminated": "Non-germinated"}
+                          "Non-geminated": "Non-germinated",
+                          "Radical": "Radicle"}
 
         self.ignore_dict = {"Dead": "__background__",
                             "Dead]": "__background__",
@@ -125,8 +126,8 @@ class FolderDataset(torch.utils.data.Dataset):
         #     print("Seeds_Striga_Strategy1:", self.CLASSES)
         # print(data_dir)
         # if "Seeds_Striga_Strategy2" in data_dir and "merey" in data_dir:
-        #     self.CLASSES = ["__background__", "Seed", "Radicle"]
-        #     print("Seeds_Striga_Strategy2:", self.CLASSES)
+        # self.CLASSES = ["__background__", "Seed", "Radicle"]
+        # print("Seeds_Striga_Strategy2:", self.CLASSES)
 
 
         # image = Image.open(image_name).convert('RGB')
@@ -383,47 +384,57 @@ if __name__ == "__main__":
     # TESTING
     from tqdm import tqdm
 
-    dataset = FolderDataset(
-        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
-        split="Training",
-        transforms=transform)
-    print(len(dataset))
-    print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+    # dataset = FolderDataset(
+    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+    #     split="Training",
+    #     transforms=transform)
+    # print(len(dataset))
+    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+
+    # dataset = FolderDataset(
+    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+    #     split="Validation",
+    #     transforms=transform)
+    # print(len(dataset))
+    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+
+    # dataset = FolderDataset(
+    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+    #     split="Testing",
+    #     transforms=transform)
+    # print(len(dataset))
+    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+
+    # dataset = FolderDataset(
+    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
+    #     split="Training",
+    #     transforms=transform)
+    # print(len(dataset))
+    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+
+    # dataset = FolderDataset(
+    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
+    #     split="Validation",
+    #     transforms=transform)
+    # print(len(dataset))
+    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
 
     dataset = FolderDataset(
-        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
-        split="Validation",
-        transforms=transform)
-    print(len(dataset))
-    print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
-
-    dataset = FolderDataset(
-        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
         split="Testing",
         transforms=transform)
-    print(len(dataset))
-    print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+    print(len(dataset), "images")
+    cnt_radicle = 0
+    cnt_seed = 0    
+    for img, target, index in tqdm(dataset):
+        cnt_radicle += len([box for box in target.get_field("labels").tolist() if ("Rad" in dataset.map_class_id_to_class_name(box))])
+        cnt_seed += len([box for box in target.get_field("labels").tolist() if ("Seed" in dataset.map_class_id_to_class_name(box))])
 
-    dataset = FolderDataset(
-        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
-        split="Training",
-        transforms=transform)
-    print(len(dataset))
-    print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
-
-    dataset = FolderDataset(
-        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
-        split="Validation",
-        transforms=transform)
-    print(len(dataset))
-    print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
-
-    dataset = FolderDataset(
-        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
-        split="Testing",
-        transforms=transform)
-    print(len(dataset))
-    print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+    print("cnt_radicle:", cnt_radicle)
+    print("cnt_seed:", cnt_seed)
+    #     for box in target.get_field("labels").tolist():
+    #         print(dataset.map_class_id_to_class_name(box))
+    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
 
     # # print(dataset.CLASSES)
     # print(len(dataset.CLASSES))

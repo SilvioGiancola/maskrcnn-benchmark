@@ -5,6 +5,7 @@ import logging
 import torch
 
 from maskrcnn_benchmark.utils.imports import import_file
+from maskrcnn_benchmark.config import cfg
 
 
 def align_and_update_state_dicts(model_state_dict, loaded_state_dict):
@@ -46,16 +47,23 @@ def align_and_update_state_dicts(model_state_dict, loaded_state_dict):
             continue
         key = current_keys[idx_new]
         key_old = loaded_keys[idx_old]
+        if "roi_heads.box.predictor.cls_score" in key and cfg.MODEL.RESET_LAST_LAYER:
+            print("not loading last layer:", key, key_old)
+            continue
+        if "roi_heads.box.predictor.bbox_pred" in key and cfg.MODEL.RESET_LAST_LAYER:
+            print("not loading last layer:", key, key_old)
+            continue
+        
         model_state_dict[key] = loaded_state_dict[key_old]
-        logger.info(
-            log_str_template.format(
-                key,
-                max_size,
-                key_old,
-                max_size_loaded,
-                tuple(loaded_state_dict[key_old].shape),
-            )
-        )
+        # logger.info(
+        #     log_str_template.format(
+        #         key,
+        #         max_size,
+        #         key_old,
+        #         max_size_loaded,
+        #         tuple(loaded_state_dict[key_old].shape),
+        #     )
+        # )
 
 
 def strip_prefix_if_present(state_dict, prefix):

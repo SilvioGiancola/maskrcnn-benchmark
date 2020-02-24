@@ -1,5 +1,9 @@
 ## SERVER API
 
+
+run with: 
+`python server/flask_server.py --GPU 1 --HOST 10.68.74.44 --PORT 8000`
+
 Server currently running on http://10.68.74.8:8000
 
 API list:

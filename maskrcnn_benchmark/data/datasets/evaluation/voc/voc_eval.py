@@ -37,12 +37,52 @@ def do_voc_evaluation(dataset, predictions, output_folder, logger):
             dataset.map_class_id_to_class_name(i), ap
         )
 
+    nb_classes = len(result["ap"])
+    print("nb_classes", nb_classes)
+
+    confidence_thresh=0.5
+    AE = np.zeros(nb_classes)
+    for (pred, gt) in zip(pred_boxlists, gt_boxlists):
+        # get labels prediction
+        pred_scores = pred.get_field("scores").tolist()
+        pred_labels = pred.get_field("labels").tolist()
+        pred_labels = [labels for i, labels in enumerate(
+            pred_labels) if pred_scores[i] > confidence_thresh]
+
+        # get labels GT
+        gt_labels = gt.get_field("labels").tolist()
+
+        # Count errors for each classes
+        for i in range(1, nb_classes):
+            pred_cnt = pred_labels.count(i)
+            gt_cnt = gt_labels.count(i)
+            # if "Seed" in dataset.map_class_id_to_class_name(i):
+            #     if i == 1:
+            #         # print(dataset.map_class_id_to_class_name(i))
+            #         pred_cnt = pred_labels.count(i) - pred_labels.count(2)
+            #         gt_cnt = gt_labels.count(i) - gt_labels.count(2)
+            #     elif i == 2:
+            #         # print(dataset.map_class_id_to_class_name(i))
+            #         pred_cnt = pred_labels.count(i) - pred_labels.count(1)
+            #         gt_cnt = gt_labels.count(i) - gt_labels.count(1)
+            
+            if (gt_cnt > 0):
+                AE[i] += np.abs((pred_cnt - gt_cnt) / gt_cnt)
+
+    AE = AE / len(pred_boxlists)
+    result = {"ae": AE, "mae": np.nanmean(AE[1:])}
+
     result_str += "Counting mAE: {:.4f}\n".format(result["mae"])
     for i, ae in enumerate(result["ae"]):
         if i == 0:  # skip background
             continue
+        name_class = dataset.map_class_id_to_class_name(i)
+        # if "Seed" in name_class:
+        #     name_class = "Non-Germinated"
+        # if "Radicle" in name_class:
+        #     name_class = "Germinated"
         result_str += "{:<16}: {:.4f}\n".format(
-            dataset.map_class_id_to_class_name(i), ae
+            name_class, ae
         )
 
     logger.info(result_str)
@@ -69,16 +109,14 @@ def eval_detection_voc(pred_boxlists, gt_boxlists, iou_thresh=0.5, use_07_metric
         pred_boxlists=pred_boxlists, gt_boxlists=gt_boxlists, iou_thresh=iou_thresh
     )
     ap = calc_detection_voc_ap(prec, rec, use_07_metric=use_07_metric)
-    ae = calc_counting_performance(
-        pred_boxlists=pred_boxlists, gt_boxlists=gt_boxlists, iou_thresh=iou_thresh,
-        nb_classes=len(ap)
-    )
-    return {"ap": ap, "map": np.nanmean(ap), "ae": ae, "mae": np.nanmean(ae[1:])}
+
+    # return {"ap": ap, "map": np.nanmean(ap), "ae": ae, "mae": np.nanmean(ae[1:])}
+    return {"ap": ap, "map": np.nanmean(ap)}
 
     nb_classes = len(result["ap"])
 
 
-def calc_counting_performance(pred_boxlists, gt_boxlists, iou_thresh=0.5, nb_classes=3):
+def calc_counting_performance(pred_boxlists, gt_boxlists, confidence_thresh=0.5, nb_classes=3):
     """Calculate mean Average Error 
     """
     AE = np.zeros(nb_classes)
@@ -87,7 +125,7 @@ def calc_counting_performance(pred_boxlists, gt_boxlists, iou_thresh=0.5, nb_cla
         pred_scores = pred.get_field("scores").tolist()
         pred_labels = pred.get_field("labels").tolist()
         pred_labels = [labels for i, labels in enumerate(
-            pred_labels) if pred_scores[i] > iou_thresh]
+            pred_labels) if pred_scores[i] > confidence_thresh]
 
         # get labels GT
         gt_labels = gt.get_field("labels").tolist()
