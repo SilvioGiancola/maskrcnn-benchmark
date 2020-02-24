@@ -19,15 +19,16 @@ class FlaskServer(object):
         self.model = None
         self.PORT = args.PORT
         self.HOST = args.HOST
+        self.architecture = args.ARCH #"R_50_C4_1x"  # architecture for FasterRCNN
+        self.weight = args.WEIGHT 
         self.args = args
 
     def setup(self):
-        self.project = "Seeds_Striga_Strategy2"  # project
-        self.architecture = "R_50_C4_1x"  # architecture for FasterRCNN
+        # self.project = "Seeds_Striga_Strategy1"  # project
         self.model = None # FasterRCNN model
 
-        print(list_project())
-        print(list_architecture())
+        # print(list_project())
+        # print(list_architecture())
 
         initialize_model()
         
@@ -46,18 +47,18 @@ def list_project():
     return os.listdir(args.DATA_FOLDER)  # ["Seeds", "Pills", "Spine", "Fish"]
 
 
-@app.route("/api/list_architecture", methods=['POST'])
-def list_architecture():
-    folder_architectures = os.path.join(
-        args.DATA_FOLDER, server.project, "output")
-    return os.listdir(folder_architectures)
+# @app.route("/api/list_architecture", methods=['POST'])
+# def list_architecture():
+    # folder_architectures = os.path.join(
+    #     args.DATA_FOLDER, server.project, "output")
+    # return os.listdir(folder_architectures)
 
 
 @app.route("/api/select_project", methods=['POST'])
 def select_project():
     headers = request.headers
     print(headers)
-    server.project = headers
+    # server.project = headers
     server.architecture = list_architecture()[0]
     err = initialize_model()
 
@@ -93,7 +94,7 @@ def initialize_model():
 
     cfg.merge_from_file(config_file)
 
-    cfg.DATASETS.DATA_DIR = os.path.join(args.DATA_FOLDER, server.project)
+    cfg.DATASETS.DATA_DIR = args.DATA_FOLDER #os.path.join(args.DATA_FOLDER, args.WEIGHT)
     cfg.DATASETS.TRAIN = ['folder_train']
     cfg.DATASETS.TEST = ['folder_test']
     cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES=3
@@ -101,9 +102,10 @@ def initialize_model():
     cfg.MODEL.ROI_HEADS.DETECTIONS_PER_IMG=200
     # cfg.TEST.BBOX_AUG.ENABLED=True
     # cfg.TEST.BBOX_AUG.H_FLIP=True
+    # cfg.OUTPUT_DIR = os.path.dirname(cfg.DATASETS.DATA_DIR)
     cfg.OUTPUT_DIR = os.path.join(
-        cfg.DATASETS.DATA_DIR, "output", server.architecture)
-        # cfg.DATASETS.DATA_DIR, "output", "server")
+        # cfg.DATASETS.DATA_DIR, "output", server.architecture)
+        cfg.DATASETS.DATA_DIR, "output", args.WEIGHT)
 
     # cfg.freeze()
 
@@ -128,8 +130,8 @@ def predict():
     # if server.model is None:
     initialize_model()
 
-    print("List Projects:", list_project())
-    print("List Architecture:", list_architecture())
+    # print("List Projects:", list_project())
+    # print("List Architecture:", list_architecture())
 
     headers = request.headers
     print(headers)
@@ -169,9 +171,21 @@ if __name__ == "__main__":
     parser.add_argument("--PORT", type=int, default=5000,
                         help="commmunication port")
 
-    parser.add_argument("--DATA_FOLDER", type=str, 
-                            default="/media/giancos/Football/CloudLabeling/",
+    parser.add_argument("--DATA_FOLDER", type=str,
+                        default="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1",
                         help="main folder shere data and model is stored")
+
+    parser.add_argument("--ARCH", type=str,
+                        default="R_50_C4_1x",
+                        help="main folder shere data and model is stored")
+
+    parser.add_argument("--WEIGHT", type=str,
+                        default="R_50_C4_1x_3",
+                        help="main folder shere data and model is stored")
+
+    # parser.add_argument("--DATA_FOLDER", type=str,
+    #                     default="Seeds_Striga_Strategy1",
+    #                     help="main folder shere data and model is stored")
 
     parser.add_argument(
         '--GPU',
