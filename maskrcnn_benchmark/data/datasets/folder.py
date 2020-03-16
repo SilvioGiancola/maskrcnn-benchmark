@@ -45,6 +45,8 @@ class FolderDataset(torch.utils.data.Dataset):
                     elif os.path.exists(anno_file.replace(".xml", ".JPG")):
                         self.anno_files.append(anno_file)
                         self.img_files.append(anno_file.replace(".xml", ".JPG"))
+        self.anno_files.sort()
+        self.img_files.sort()
         # print(self.anno_files)
         # print(self.img_files)
         self.typo_dict = {"spine-head portrusion": "spine-head protrusion",
@@ -284,167 +286,210 @@ class FolderDataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
-    from maskrcnn_benchmark.config import cfg
-    cfg.INPUT.ROTATE_PROB_TRAIN = 0.5
-    cfg.INPUT.HORIZONTAL_FLIP_PROB_TRAIN = 0.5
-    cfg.INPUT.VERTICAL_FLIP_PROB_TRAIN = 0.5
+
+    import pandas as pd
+    
+
+    for split in ["Testing", "Validation", "Training"]:
+        dataset1 = FolderDataset(
+            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_finetuning_201030",
+                split=split)
+        dataset2 = FolderDataset(
+            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_finetuning_201030",
+                split=split)
+        print(len(dataset1), len(dataset2))
+
+        df = pd.DataFrame(columns=["name1", "name2", "GS", "NGS", "R", "S",])
+
+        for (_, target1, index),(_, target2, _), in zip(dataset1, dataset2):
+            # print(dataset1.map_class_id_to_class_name(1), 
+            #       dataset1.map_class_id_to_class_name(2))
+            name1 = dataset1.anno_files[index]
+            print(name1)
+            name2 = dataset2.anno_files[index]
+            print(name2)
+            GS = len([label for label in target1.get_field("labels").numpy().tolist() if (label == 1)])
+            print("GS:",GS)
+            NGS = len([label for label in target1.get_field("labels").numpy().tolist() if (label == 2)])
+            print("NGS:",NGS)
+            R = len([label for label in target2.get_field("labels").numpy().tolist() if (label == 1)])
+            print("R:",R)
+            S = len([label for label in target2.get_field("labels").numpy().tolist() if (label == 2)])
+            print("S:",S)
+
+            # df = df.append([name1, name2, GS, NGS, R, S,])
+            df = df.append({"name1": name1, "name2": name2, "GS": GS,
+                            "NGS": NGS, "R": R, "S": S}, ignore_index=True)
+
+
+        df.to_csv(f"/home/giancos/Downloads/Consistency_Orobanche_{split}.csv")
+        # print(target1.get_field("labels").numpy().tolist() == 2))
+        # print(dataset2.map_class_id_to_class_name(1),
+        #       dataset2.map_class_id_to_class_name(2))
+        # print(target2.get_field("labels").numpy().tolist())
+        # print(target1["labels"], target2)
+
+    # from maskrcnn_benchmark.config import cfg
+    # cfg.INPUT.ROTATE_PROB_TRAIN = 0.5
+    # cfg.INPUT.HORIZONTAL_FLIP_PROB_TRAIN = 0.5
+    # cfg.INPUT.VERTICAL_FLIP_PROB_TRAIN = 0.5
+    # # min_size = cfg.INPUT.MIN_SIZE_TRAIN
+    # # max_size = cfg.INPUT.MAX_SIZE_TRAIN
+    # # cfg.INPUT.ROTATE_PROB_TRAIN = 1.0
+
+
+    # # from maskrcnn_benchmark.data.build import build_transforms
+    # from maskrcnn_benchmark.data.transforms import transforms as T
     # min_size = cfg.INPUT.MIN_SIZE_TRAIN
     # max_size = cfg.INPUT.MAX_SIZE_TRAIN
-    # cfg.INPUT.ROTATE_PROB_TRAIN = 1.0
-
-
-    # from maskrcnn_benchmark.data.build import build_transforms
-    from maskrcnn_benchmark.data.transforms import transforms as T
-    min_size = cfg.INPUT.MIN_SIZE_TRAIN
-    max_size = cfg.INPUT.MAX_SIZE_TRAIN
-    flip_horizontal_prob = cfg.INPUT.HORIZONTAL_FLIP_PROB_TRAIN
-    flip_vertical_prob = cfg.INPUT.VERTICAL_FLIP_PROB_TRAIN
-    rotate_prob = cfg.INPUT.ROTATE_PROB_TRAIN
-    brightness = cfg.INPUT.BRIGHTNESS
-    contrast = cfg.INPUT.CONTRAST
-    saturation = cfg.INPUT.SATURATION
-    hue = cfg.INPUT.HUE
+    # flip_horizontal_prob = cfg.INPUT.HORIZONTAL_FLIP_PROB_TRAIN
+    # flip_vertical_prob = cfg.INPUT.VERTICAL_FLIP_PROB_TRAIN
+    # rotate_prob = cfg.INPUT.ROTATE_PROB_TRAIN
+    # brightness = cfg.INPUT.BRIGHTNESS
+    # contrast = cfg.INPUT.CONTRAST
+    # saturation = cfg.INPUT.SATURATION
+    # hue = cfg.INPUT.HUE
     
-    to_bgr255 = cfg.INPUT.TO_BGR255
-    normalize_transform = T.Normalize(
-        mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD, to_bgr255=to_bgr255
-    )
-    color_jitter = T.ColorJitter(
-        brightness=brightness,
-        contrast=contrast,
-        saturation=saturation,
-        hue=hue,
-    )
+    # to_bgr255 = cfg.INPUT.TO_BGR255
+    # normalize_transform = T.Normalize(
+    #     mean=cfg.INPUT.PIXEL_MEAN, std=cfg.INPUT.PIXEL_STD, to_bgr255=to_bgr255
+    # )
+    # color_jitter = T.ColorJitter(
+    #     brightness=brightness,
+    #     contrast=contrast,
+    #     saturation=saturation,
+    #     hue=hue,
+    # )
 
-    transform = T.Compose(
-        [
-            color_jitter,
-            T.Resize(min_size, max_size),
-            T.RandomHorizontalFlip(flip_horizontal_prob),
-            T.RandomVerticalFlip(flip_vertical_prob),
-            T.RandomRightRotation(rotate_prob),
-            # T.ToTensor(),
-            # normalize_transform,
-        ]
-    )
-    # transform = build_transforms(cfg)
-
-
+    # transform = T.Compose(
+    #     [
+    #         color_jitter,
+    #         T.Resize(min_size, max_size),
+    #         T.RandomHorizontalFlip(flip_horizontal_prob),
+    #         T.RandomVerticalFlip(flip_vertical_prob),
+    #         T.RandomRightRotation(rotate_prob),
+    #         # T.ToTensor(),
+    #         # normalize_transform,
+    #     ]
+    # )
+    # # transform = build_transforms(cfg)
 
 
 
-    # print(transform)
 
-    dataset = FolderDataset(
-        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
-        split="Training",
-        transforms=transform)
 
-    # print(dataset.CLASSES)
-    # print(len(dataset.CLASSES))
-    # print(len(dataset))
-    image, target, index = dataset[0]
-    print(image)
-    print(dataset.get_img_info(0))
-    print(dataset.get_img_info(0))
-    print(dataset.get_img_info(0))
-    print(dataset.get_img_info(0))
-    print(dataset.get_img_info(0))
-    print(dataset.get_img_info(0))
-    print(image.size)
-    print(target.bbox[0])
+    # # print(transform)
 
-    import numpy as np
-    import cv2
+    # dataset = FolderDataset(
+    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+    #     split="Training",
+    #     transforms=transform)
 
-    # image = np.array(image, dtype=np.int)
-    # result = image.copy()
-    print(image)
-    img1 = ImageDraw.Draw(image)
-    w = 10
-    h=30
-    shape = [(40, 40), (w - 10, h - 10)]
+    # # print(dataset.CLASSES)
+    # # print(len(dataset.CLASSES))
+    # # print(len(dataset))
+    # image, target, index = dataset[0]
+    # print(image)
+    # print(dataset.get_img_info(0))
+    # print(dataset.get_img_info(0))
+    # print(dataset.get_img_info(0))
+    # print(dataset.get_img_info(0))
+    # print(dataset.get_img_info(0))
+    # print(dataset.get_img_info(0))
+    # print(image.size)
+    # print(target.bbox[0])
 
-    for box in target.bbox:
-        # box = box.to(torch.int64)
-        top_left, bottom_right = box[:2].tolist(), box[2:].tolist()
-        top_left = tuple([int(i) for i in top_left])
-        bottom_right = tuple([int(i) for i in bottom_right])
-        # print(top_left, bottom_right)
-        img1.rectangle([top_left, bottom_right], outline="red")
-    #     image = cv2.rectangle(
-    #         image, top_left, bottom_right, 255, 10
-    #     )
+    # import numpy as np
+    # import cv2
 
-    # image = Image.fromarray(image)
-    # image.save("/home/giancos/Downloads/test.jpg")
+    # # image = np.array(image, dtype=np.int)
+    # # result = image.copy()
+    # print(image)
+    # img1 = ImageDraw.Draw(image)
+    # w = 10
+    # h=30
+    # shape = [(40, 40), (w - 10, h - 10)]
+
+    # for box in target.bbox:
+    #     # box = box.to(torch.int64)
+    #     top_left, bottom_right = box[:2].tolist(), box[2:].tolist()
+    #     top_left = tuple([int(i) for i in top_left])
+    #     bottom_right = tuple([int(i) for i in bottom_right])
+    #     # print(top_left, bottom_right)
+    #     img1.rectangle([top_left, bottom_right], outline="red")
+    # #     image = cv2.rectangle(
+    # #         image, top_left, bottom_right, 255, 10
+    # #     )
+
+    # # image = Image.fromarray(image)
+    # # image.save("/home/giancos/Downloads/test.jpg")
                 
 
 
-    # TESTING
-    from tqdm import tqdm
+    # # TESTING
+    # from tqdm import tqdm
+
+    # # dataset = FolderDataset(
+    # #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+    # #     split="Training",
+    # #     transforms=transform)
+    # # print(len(dataset))
+    # # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+
+    # # dataset = FolderDataset(
+    # #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+    # #     split="Validation",
+    # #     transforms=transform)
+    # # print(len(dataset))
+    # # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+
+    # # dataset = FolderDataset(
+    # #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+    # #     split="Testing",
+    # #     transforms=transform)
+    # # print(len(dataset))
+    # # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+
+    # # dataset = FolderDataset(
+    # #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
+    # #     split="Training",
+    # #     transforms=transform)
+    # # print(len(dataset))
+    # # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+
+    # # dataset = FolderDataset(
+    # #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
+    # #     split="Validation",
+    # #     transforms=transform)
+    # # print(len(dataset))
+    # # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
 
     # dataset = FolderDataset(
-    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
-    #     split="Training",
-    #     transforms=transform)
-    # print(len(dataset))
-    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
-
-    # dataset = FolderDataset(
-    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
-    #     split="Validation",
-    #     transforms=transform)
-    # print(len(dataset))
-    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
-
-    # dataset = FolderDataset(
-    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1", 
+    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
     #     split="Testing",
     #     transforms=transform)
-    # print(len(dataset))
-    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+    # print(len(dataset), "images")
+    # cnt_radicle = 0
+    # cnt_seed = 0    
+    # for img, target, index in tqdm(dataset):
+    #     cnt_radicle += len([box for box in target.get_field("labels").tolist() if ("Rad" in dataset.map_class_id_to_class_name(box))])
+    #     cnt_seed += len([box for box in target.get_field("labels").tolist() if ("Seed" in dataset.map_class_id_to_class_name(box))])
 
-    # dataset = FolderDataset(
-    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
-    #     split="Training",
-    #     transforms=transform)
-    # print(len(dataset))
-    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+    # print("cnt_radicle:", cnt_radicle)
+    # print("cnt_seed:", cnt_seed)
+    # #     for box in target.get_field("labels").tolist():
+    # #         print(dataset.map_class_id_to_class_name(box))
+    # # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
 
-    # dataset = FolderDataset(
-    #     data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
-    #     split="Validation",
-    #     transforms=transform)
-    # print(len(dataset))
-    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
+    # # # print(dataset.CLASSES)
+    # # print(len(dataset.CLASSES))
+    # # print(len(dataset))
+    # # lst = []
+    # # for image, boxes, idx in dataset:
+    # #     for box in boxes.get_field("labels").tolist():
+    # #         lst.append(dataset.map_class_id_to_class_name(box))
 
-    dataset = FolderDataset(
-        data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
-        split="Testing",
-        transforms=transform)
-    print(len(dataset), "images")
-    cnt_radicle = 0
-    cnt_seed = 0    
-    for img, target, index in tqdm(dataset):
-        cnt_radicle += len([box for box in target.get_field("labels").tolist() if ("Rad" in dataset.map_class_id_to_class_name(box))])
-        cnt_seed += len([box for box in target.get_field("labels").tolist() if ("Seed" in dataset.map_class_id_to_class_name(box))])
-
-    print("cnt_radicle:", cnt_radicle)
-    print("cnt_seed:", cnt_seed)
-    #     for box in target.get_field("labels").tolist():
-    #         print(dataset.map_class_id_to_class_name(box))
-    # print("nb_sample =", np.sum([len(target) for img, target, index in tqdm(dataset)]))
-
-    # # print(dataset.CLASSES)
-    # print(len(dataset.CLASSES))
-    # print(len(dataset))
-    # lst = []
-    # for image, boxes, idx in dataset:
-    #     for box in boxes.get_field("labels").tolist():
-    #         lst.append(dataset.map_class_id_to_class_name(box))
-
-    # from collections import Counter
-    # cnt = Counter(lst)
-    # print(cnt)
-    # print(len(cnt))
+    # # from collections import Counter
+    # # cnt = Counter(lst)
+    # # print(cnt)
+    # # print(len(cnt))

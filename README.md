@@ -6,6 +6,263 @@ conda activate maskrcnn_benchmark
 
 # Striga Seeds
 `data="/media/giancos/Football/Seeds/Striga_Strategy1`
+TRAIN + TEST:
+`for model in R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x; do for i in 2 1; do data="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy${i}"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 5000 OUTPUT_DIR "${data}/output/${model}" SOLVER.CHECKPOINT_PERIOD 1000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 100 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/test_net.py --ckpt "${data}/output/${model}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  done; done`
+
+TRAIN+TEST for 30 times:
+```
+for run in `seq 1 30`; 
+ do for model in R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x R_50_C4_1x_pre R_50_FPN_1x_pre R_101_FPN_1x_pre X_101_32x8d_FPN_1x_pre; 
+  do for i in 1 2; 
+   do data="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy${i}"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 5000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 1000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 100 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.RESET_LAST_LAYER True
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3  
+done; 
+done;
+ done
+```
+
+
+
+DIRECT TEST ON OROBANCHE
+`for run in `seq 1 10`; do for model in R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x R_50_C4_1x_pre R_50_FPN_1x_pre R_101_FPN_1x_pre X_101_32x8d_FPN_1x_pre; do for i in 2; do data="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 python tools/test_net.py --ckpt "/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  done; done; done`
+
+
+DIRECT TEST ON OROBANCHE (SMALL TEST SET)
+`for run in `seq 1 10`; do for model in R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x R_50_C4_1x_pre R_50_FPN_1x_pre R_101_FPN_1x_pre X_101_32x8d_FPN_1x_pre; do for i in 2; do data="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_test"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 python tools/test_net.py --ckpt "/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  done; done; done`
+
+
+
+
+Finetune + TEST OROBANCHE
+```
+for run in `seq 1 10`;
+ do for model in R_50_FPN_1x R_101_FPN_1x R_50_FPN_1x_pre R_101_FPN_1x_pre; 
+  do for i in 2; 
+   do data="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_finetuning"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 1000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.WEIGHT "/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2/output/${model}_${run}/model_bestval.pth" SOLVER.START_ITER 0 MODEL.RESET_LAST_LAYER True
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+   data="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_scratch"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 1000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+done
+done
+done
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+MODELS
+R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x R_50_C4_1x_pre R_50_FPN_1x_pre R_101_FPN_1x_pre X_101_32x8d_FPN_1x_pre
+
+
+GPU 1 -> R_50_C4_1x X_101_32x8d_FPN_1x
+
+TRAIN + TEST for 30 times + OROBANCHE:
+```
+export GPU=1
+export folder="/media/giancos/Football/CloudLabeling"
+for run in `seq 1 30`; 
+ do 
+ for model in  R_50_C4_1x  X_101_32x8d_FPN_1x R_50_C4_1x_pre  X_101_32x8d_FPN_1x_pre ; 
+  do 
+  for i in 1 2; 
+   do 
+   data="${folder}/Seeds_Striga_Strategy${i}"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 5000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 6000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 100 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.RESET_LAST_LAYER True
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3  
+
+
+
+  done; 
+  done
+
+  for model in   R_50_C4_1x_pre   X_101_32x8d_FPN_1x_pre ;
+  do 
+    for i in 1 2;
+   do 
+
+
+   data="${folder}/Seeds_Orobanche_Strategy${i}"
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+
+   data="${folder}/Seeds_Orobanche_Strategy${i}_test_201030"
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+
+
+   data="${folder}/Seeds_Orobanche_Strategy${i}_scratch_201030"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 2000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.RESET_LAST_LAYER True
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+
+
+   data="${folder}/Seeds_Orobanche_Strategy${i}_finetuning_201030"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 2000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.WEIGHT "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" SOLVER.START_ITER 0 MODEL.RESET_LAST_LAYER True
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+  done
+  done;
+
+done
+```
+
+
+
+
+
+GPU 0 -> R_50_FPN_1x R_101_FPN_1x
+
+TRAIN + TEST for 30 times + OROBANCHE:
+```
+export GPU=0
+export folder="/media/giancos/Football/CloudLabeling"
+for run in `seq 1 30`; 
+ do 
+ for model in  R_50_FPN_1x R_101_FPN_1x   R_50_FPN_1x_pre R_101_FPN_1x_pre ; 
+  do 
+  for i in 1 2; 
+   do 
+   data="${folder}/Seeds_Striga_Strategy${i}"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 5000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 6000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 100 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.RESET_LAST_LAYER True
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3  
+
+
+  done; 
+  done
+
+  for model in  R_50_FPN_1x_pre R_101_FPN_1x_pre ;
+  do 
+    for i in 1 2;
+   do 
+
+
+   data="${folder}/Seeds_Orobanche_Strategy${i}"
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+
+   data="${folder}/Seeds_Orobanche_Strategy${i}_test_201030"
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+
+   data="${folder}/Seeds_Orobanche_Strategy${i}_scratch_201030"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 2000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.RESET_LAST_LAYER True
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+
+
+   data="${folder}/Seeds_Orobanche_Strategy${i}_finetuning_201030"
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 2000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.WEIGHT "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" SOLVER.START_ITER 0 MODEL.RESET_LAST_LAYER True
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;  
+
+  done
+  done;
+
+done
+```
+
+
+#### TEST ONLY 
+```
+export GPU=0
+for run in `seq 1 10`; 
+ do 
+ for model in  R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x R_50_C4_1x_pre R_50_FPN_1x_pre R_101_FPN_1x_pre X_101_32x8d_FPN_1x_pre ; 
+  do 
+  for i in 1 2; 
+   do 
+   data="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy${i}"
+   
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 
+
+
+  done; 
+  done
+
+  for model in  R_50_C4_1x_pre R_50_FPN_1x_pre R_101_FPN_1x_pre X_101_32x8d_FPN_1x_pre ;
+  do 
+    for i in 2;
+   do 
+
+
+
+   data="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2"
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 ;  
+
+
+   data="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_test_201030"
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 ;  
+
+
+
+   data="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_scratch_201030"
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 ;  
+
+
+
+   data="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_finetuning_201030"
+   
+   
+   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 ;  
+
+  done
+  done;
+
+done
+```
+
 
 # List model: 
 - R_50_C4_1x
@@ -15,16 +272,18 @@ conda activate maskrcnn_benchmark
 - fbnet
 
  - ALL of the previous
-`for model in R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x fbnet; do for i in 2 1; do data="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy${i}"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_test',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 20000 OUTPUT_DIR "${data}/output/${model}" SOLVER.CHECKPOINT_PERIOD 1000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 1000 DATALOADER.SIZE_DIVISIBILITY 1 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3; done; done`
+`for model in R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x; do for i in 2 1; do data="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy${i}"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 5000 OUTPUT_DIR "${data}/output/${model}" SOLVER.CHECKPOINT_PERIOD 100 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 100 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3; done; done`
 
-
-model=R_50_C4_1x; i=2; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=0 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_test',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 20000 OUTPUT_DIR "${data}/output/${model}_rot" SOLVER.CHECKPOINT_PERIOD 1000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 1000 DATALOADER.SIZE_DIVISIBILITY 1
 
 
 # Spine
 `model=R_50_FPN_1x; data="/media/giancos/Football/Spine/Annotated_March 13_Leica"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.TRAIN "('folder_spine_train',)"  DATASETS.TEST "('folder_spine_test',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 2 SOLVER.MAX_ITER 20000 OUTPUT_DIR "${data}/output/${model}" SOLVER.CHECKPOINT_PERIOD 100`
 
 ## Test:
+
+ALL METHODS:
+`for model in R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x; do for i in 2 1; do data="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy${i}"; CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=1 python tools/test_net.py --ckpt "${data}/output/${model}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid', 'folder_train')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3; done; done`
+
 
 LAST EPOCH
 

@@ -94,12 +94,15 @@ def initialize_model():
 
     cfg.merge_from_file(config_file)
 
-    cfg.DATASETS.DATA_DIR = args.DATA_FOLDER #os.path.join(args.DATA_FOLDER, args.WEIGHT)
+    # os.path.join(args.DATA_FOLDER, args.WEIGHT)
+    cfg.DATASETS.DATA_DIR = os.path.join(args.DATA_FOLDER, args.PROJECT_FOLDER)
     cfg.DATASETS.TRAIN = ['folder_train']
     cfg.DATASETS.TEST = ['folder_test']
     cfg.MODEL.ROI_BOX_HEAD.NUM_CLASSES=3
     cfg.TEST.DETECTIONS_PER_IMG=200
     cfg.MODEL.ROI_HEADS.DETECTIONS_PER_IMG=200
+    # cfg.RPN.NMS_THRESH = 0.7
+    cfg.MODEL.ROI_HEADS.NMS = 0.1 #0.5
     # cfg.TEST.BBOX_AUG.ENABLED=True
     # cfg.TEST.BBOX_AUG.H_FLIP=True
     # cfg.OUTPUT_DIR = os.path.dirname(cfg.DATASETS.DATA_DIR)
@@ -168,20 +171,25 @@ if __name__ == "__main__":
 
     parser.add_argument("--HOST", type=str, default="localhost",
                         help="host IP")
+                        
     parser.add_argument("--PORT", type=int, default=5000,
                         help="commmunication port")
 
     parser.add_argument("--DATA_FOLDER", type=str,
-                        default="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1",
+                        default="/media/giancos/Football/CloudLabeling/",
                         help="main folder shere data and model is stored")
+
+    parser.add_argument("--PROJECT_FOLDER", type=str,
+                        default="Seeds_Striga_Strategy1",
+                        help="project folder where single project are held")
 
     parser.add_argument("--ARCH", type=str,
                         default="R_50_C4_1x",
-                        help="main folder shere data and model is stored")
+                        help="type of architecture to load the proper configuration file")
 
     parser.add_argument("--WEIGHT", type=str,
                         default="R_50_C4_1x_3",
-                        help="main folder shere data and model is stored")
+                        help="folder where the model has been outputed, after training")
 
     # parser.add_argument("--DATA_FOLDER", type=str,
     #                     default="Seeds_Striga_Strategy1",

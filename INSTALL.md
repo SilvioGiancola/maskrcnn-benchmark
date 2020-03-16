@@ -18,6 +18,8 @@
 # for that, check that `which conda`, `which pip` and `which python` points to the
 # right path. From a clean conda env, this is what you need to do
 
+curl -so anaconda.sh https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh
+
 conda create --name maskrcnn_benchmark -y
 conda activate maskrcnn_benchmark
 
