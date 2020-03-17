@@ -57,9 +57,16 @@ class FolderDataset(torch.utils.data.Dataset):
                           "Non-geminated": "Non-germinated",
                           "Radical": "Radicle"}
 
-        self.ignore_dict = {"Dead": "__background__",
-                            "Dead]": "__background__",
-                            "A": "__background__",
+        # if "Seeds_Striga_Strategy1" in data_dir:
+        #     self.typo_dict["Dead]"] = "Germinated"
+        #     self.typo_dict["Dead"] = "Germinated"
+        #     self.typo_dict["dead"] = "Germinated"
+        # elif "Seeds_Striga_Strategy2" in data_dir:
+        #     self.typo_dict["Dead]"] = "Radicle"
+        #     self.typo_dict["Dead"] = "Radicle"
+        #     self.typo_dict["dead"] = "Radicle"
+
+        self.ignore_dict = {"A": "__background__",
                             "B": "__background__",
                             "C": "__background__",
                             "D": "__background__",
@@ -68,7 +75,9 @@ class FolderDataset(torch.utils.data.Dataset):
                             "G": "__background__",
                             "H": "__background__",
                             "I": "__background__",
-                            "K": "__background__"}
+                            "K": "__background__",
+                            "Dead": "__background__",
+                            "Dead]": "__background__"}
                         #   "Radical": "Radicle",
         # if "Seeds_Striga_Strategy2" in data_dir:
         #     self.typo_dict.update({"Germinated": "__background__"})
@@ -292,10 +301,12 @@ if __name__ == "__main__":
 
     for split in ["Testing", "Validation", "Training"]:
         dataset1 = FolderDataset(
-            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_finetuning_201030",
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_finetuning_201030",
+            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1",
                 split=split)
         dataset2 = FolderDataset(
-            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_finetuning_201030",
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_finetuning_201030",
+            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
                 split=split)
         print(len(dataset1), len(dataset2))
 
@@ -322,7 +333,7 @@ if __name__ == "__main__":
                             "NGS": NGS, "R": R, "S": S}, ignore_index=True)
 
 
-        df.to_csv(f"/home/giancos/Downloads/Consistency_Orobanche_{split}.csv")
+        df.to_csv(f"/home/giancos/Downloads/Consistency_Striga_{split}.csv")
         # print(target1.get_field("labels").numpy().tolist() == 2))
         # print(dataset2.map_class_id_to_class_name(1),
         #       dataset2.map_class_id_to_class_name(2))
