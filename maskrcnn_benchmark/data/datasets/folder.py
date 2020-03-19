@@ -75,9 +75,10 @@ class FolderDataset(torch.utils.data.Dataset):
                             "G": "__background__",
                             "H": "__background__",
                             "I": "__background__",
-                            "K": "__background__",
-                            "Dead": "__background__",
-                            "Dead]": "__background__"}
+                            "K": "__background__",}
+        self.ignore_dict["Dead]"] = "__background__"
+        self.ignore_dict["Dead"] = "__background__"
+        self.ignore_dict["dead"] = "__background__"
                         #   "Radical": "Radicle",
         # if "Seeds_Striga_Strategy2" in data_dir:
         #     self.typo_dict.update({"Germinated": "__background__"})
@@ -298,35 +299,46 @@ if __name__ == "__main__":
 
     import pandas as pd
     
-
+    # for project in ["Seeds_Orobanche_Strategy1",
+    #                 "Seeds_Orobanche_Strategy1_finetuning_201030",
+    #                 "Seeds_Orobanche_Strategy1_scratch_201030",
+    #                 "Seeds_Orobanche_Strategy1_test_201030",
+    #                 "Seeds_Striga_Strategy1"]:
     for split in ["Testing", "Validation", "Training"]:
         dataset1 = FolderDataset(
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1",
             # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_finetuning_201030",
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_scratch_201030",
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_test_201030",
             data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1",
                 split=split)
         dataset2 = FolderDataset(
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2",
             # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_finetuning_201030",
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_scratch_201030",
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_test_201030",
             data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
                 split=split)
         print(len(dataset1), len(dataset2))
 
         df = pd.DataFrame(columns=["name1", "name2", "GS", "NGS", "R", "S",])
-
-        for (_, target1, index),(_, target2, _), in zip(dataset1, dataset2):
+        from tqdm import tqdm
+        for (_, target1, index),(_, target2, _), in tqdm(zip(dataset1, dataset2)):
             # print(dataset1.map_class_id_to_class_name(1), 
             #       dataset1.map_class_id_to_class_name(2))
             name1 = dataset1.anno_files[index]
-            print(name1)
             name2 = dataset2.anno_files[index]
-            print(name2)
             GS = len([label for label in target1.get_field("labels").numpy().tolist() if (label == 1)])
-            print("GS:",GS)
             NGS = len([label for label in target1.get_field("labels").numpy().tolist() if (label == 2)])
-            print("NGS:",NGS)
             R = len([label for label in target2.get_field("labels").numpy().tolist() if (label == 1)])
-            print("R:",R)
             S = len([label for label in target2.get_field("labels").numpy().tolist() if (label == 2)])
-            print("S:",S)
+            if (not GS == R) or (not NGS == S-R):
+                print(name1)
+                print(name2)
+                # print("GS:", GS)
+                # print("NGS:", NGS)
+                # print("R:", R)
+                # print("S:", S)
 
             # df = df.append([name1, name2, GS, NGS, R, S,])
             df = df.append({"name1": name1, "name2": name2, "GS": GS,
