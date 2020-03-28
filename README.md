@@ -266,12 +266,17 @@ done
 
 
 ### SH kw60623
-
+conda activate maskrcnn_benchmark
 export folder=/home/giancos/CloudLabeling
-export GPU=0
+export GPU=1
+export models="R_50_C4_1x R_50_C4_1x_pre"
+export models="R_50_FPN_1x R_50_FPN_1x_pre"
+export models="R_101_FPN_1x R_101_FPN_1x_pre"
+export models="X_101_32x8d_FPN_1x X_101_32x8d_FPN_1x_pre"
+
 for run in `seq 1 30`;   
 do   
-for model in  R_50_C4_1x R_50_FPN_1x R_101_FPN_1x X_101_32x8d_FPN_1x R_50_C4_1x_pre R_50_FPN_1x_pre R_101_FPN_1x_pre X_101_32x8d_FPN_1x_pre ;    
+for model in  ${models} ;    
 do    
 for i in 1 2;     
 do     
@@ -281,30 +286,26 @@ do
   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 5000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 5000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 100 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.RESET_LAST_LAYER True;
 
   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3  ;    
-done;    
-done;    
-for model in   R_50_C4_1x_pre R_50_FPN_1x_pre R_101_FPN_1x_pre X_101_32x8d_FPN_1x_pre ;   
-do      
-for i in 2;    
-do     
+
+
+
+  data="${folder}/Seeds_Orobanche_Strategy${i}";
   
-  data="${folder}/Seeds_Orobanche_Strategy2";            
+  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;      
   
-  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${folder}/Seeds_Striga_Strategy2/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test',)" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;      
+  data="${folder}/Seeds_Orobanche_Strategy${i}_test_201030";            
   
-  data="${folder}/Seeds_Orobanche_Strategy2_test_201030";            
+  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;      
   
-  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${folder}/Seeds_Striga_Strategy2/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;      
-  
-  data="${folder}/Seeds_Orobanche_Strategy2_scratch_201030";        
+  data="${folder}/Seeds_Orobanche_Strategy${i}_scratch_201030";        
   
   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 2000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.RESET_LAST_LAYER True;        
   
   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;      
   
-  data="${folder}/Seeds_Orobanche_Strategy2_finetuning_201030";        
+  data="${folder}/Seeds_Orobanche_Strategy${i}_finetuning_201030";        
   
-  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 2000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.WEIGHT "${folder}/Seeds_Striga_Strategy2/output/${model}_${run}/model_bestval.pth" SOLVER.START_ITER 0 MODEL.RESET_LAST_LAYER True;        
+  CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/train_net.py --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TRAIN "('folder_train',)"  DATASETS.TEST "('folder_valid',)" SOLVER.IMS_PER_BATCH 2 TEST.IMS_PER_BATCH 1 SOLVER.MAX_ITER 1000 OUTPUT_DIR "${data}/output/${model}_${run}" SOLVER.CHECKPOINT_PERIOD 2000 TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 INPUT.VERTICAL_FLIP_PROB_TRAIN 0.5 SOLVER.TEST_PERIOD 20 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3 MODEL.WEIGHT "${folder}/Seeds_Striga_Strategy${i}/output/${model}_${run}/model_bestval.pth" SOLVER.START_ITER 0 MODEL.RESET_LAST_LAYER True;        
   
   CUDA_DEVICE_ORDER=PCI_BUS_ID CUDA_VISIBLE_DEVICES=${GPU} python tools/test_net.py --ckpt "${data}/output/${model}_${run}/model_bestval.pth" --config-file configs/e2e_faster_rcnn_${model}.yaml DATASETS.DATA_DIR ${data} DATASETS.TEST "('folder_test','folder_valid')" TEST.IMS_PER_BATCH 1 OUTPUT_DIR "${data}/output/${model}_${run}" TEST.DETECTIONS_PER_IMG 200 MODEL.ROI_HEADS.DETECTIONS_PER_IMG 200 MODEL.ROI_BOX_HEAD.NUM_CLASSES 3;     
 done;   

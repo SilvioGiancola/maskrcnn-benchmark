@@ -307,17 +307,17 @@ if __name__ == "__main__":
     for split in ["Testing", "Validation", "Training"]:
         dataset1 = FolderDataset(
             # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1",
-            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_finetuning_201030",
+            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_finetuning_201030",
             # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_scratch_201030",
             # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy1_test_201030",
-            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1",
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy1",
                 split=split)
         dataset2 = FolderDataset(
             # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2",
-            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_finetuning_201030",
+            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_finetuning_201030",
             # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_scratch_201030",
             # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Orobanche_Strategy2_test_201030",
-            data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
+            # data_dir="/media/giancos/Football/CloudLabeling/Seeds_Striga_Strategy2",
                 split=split)
         print(len(dataset1), len(dataset2))
 
