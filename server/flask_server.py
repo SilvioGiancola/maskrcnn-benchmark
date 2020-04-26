@@ -1,3 +1,5 @@
+from datetime import datetime
+import threading
 from flask import Flask, request, jsonify
 
 import os
@@ -10,9 +12,10 @@ from maskrcnn_benchmark.config import cfg
 from maskrcnn_benchmark.data import make_data_loader
 from maskrcnn_benchmark.structures.bounding_box import BoxList
 from predictor import COCODemo
+from train import TrainingThread
 
 from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter
-
+import time
 
 class FlaskServer(object):
     def __init__(self, args):
@@ -22,6 +25,8 @@ class FlaskServer(object):
         self.architecture = args.ARCH #"R_50_C4_1x"  # architecture for FasterRCNN
         self.weight = args.WEIGHT 
         self.args = args
+        # self.training_thread = threading.Thread(
+        #         target=self.training_in_background)
 
     def setup(self):
         # self.project = "Seeds_Striga_Strategy1"  # project
@@ -34,6 +39,11 @@ class FlaskServer(object):
         
         app.run(host=self.HOST, port=self.PORT)
 
+
+    # def training_in_background(self, t=10):
+    #     print("hello from training")
+    #     time.sleep(t)
+    #     print("hello again after 10sec")
 
 app = Flask(__name__)
 
@@ -127,14 +137,39 @@ def initialize_model():
     return False
 
 
+
+
+
+# training_thread = threading.Thread(
+#     target=training_in_background)
+
+# training_thread = threading.Thread()
+
+@app.route("/api/train", methods=['POST'])
+def train():
+    headers = request.headers
+    print(headers)
+    trainingCFG = {"project_ID": "Striga_Strategy1",
+                   "training_images": ["image1", "image2"],
+                   "validation_images": ["image1", "image2"],
+                   "time": 12,
+                   "asked_training_date": datetime.now().strftime("%H:%M:%S")}
+    ret = training_thread.append_training(trainingCFG)
+    if ret:
+        print("PROJECT alread in QUEUE")
+    else:
+        print("PROJECT QUEUED")
+
+    return jsonify({'asked_training': True,
+                    'added_to_queue': ret,
+                    })
+
+
 @app.route("/api/predict", methods=['POST'])
 def predict():
-
-    # if server.model is None:
+   
     initialize_model()
 
-    # print("List Projects:", list_project())
-    # print("List Architecture:", list_architecture())
 
     headers = request.headers
     print(headers)
@@ -151,6 +186,7 @@ def predict():
         print(predictions)
                    
         boxes = predictions.bbox.numpy().tolist()
+        # print("boxes", boxes)
         # print(predictions.get_field("labels").numpy().tolist())
         # print(server.model.CATEGORIES)
         labels_words = [server.model.CATEGORIES[label]
@@ -176,7 +212,7 @@ if __name__ == "__main__":
                         help="commmunication port")
 
     parser.add_argument("--DATA_FOLDER", type=str,
-                        default="/media/giancos/Football/CloudLabeling/",
+                        default="/media/giancos/Football/CloudLabeling_DS/CloudLabeling/",
                         help="main folder shere data and model is stored")
 
     parser.add_argument("--PROJECT_FOLDER", type=str,
@@ -188,7 +224,7 @@ if __name__ == "__main__":
                         help="type of architecture to load the proper configuration file")
 
     parser.add_argument("--WEIGHT", type=str,
-                        default="R_50_C4_1x_3",
+                        default="R_50_C4_1x_pre_19",
                         help="folder where the model has been outputed, after training")
 
     # parser.add_argument("--DATA_FOLDER", type=str,
@@ -207,6 +243,9 @@ if __name__ == "__main__":
     if args.GPU >= 0:
         os.environ["CUDA_DEVICE_ORDER"] = "PCI_BUS_ID"
         os.environ["CUDA_VISIBLE_DEVICES"] = str(args.GPU)
+
+    training_thread = TrainingThread()
+    training_thread.start()
 
     server = FlaskServer(args)
     server.setup()
