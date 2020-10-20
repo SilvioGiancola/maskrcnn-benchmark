@@ -70,7 +70,7 @@ def do_voc_evaluation(dataset, predictions, output_folder, logger):
                 AE[i] += np.abs((pred_cnt - gt_cnt) / gt_cnt)
 
     AE = AE / len(pred_boxlists)
-    result = {"ae": AE, "mae": np.nanmean(AE[1:])}
+    result.update({"ae": AE, "mae": np.nanmean(AE[1:])})
 
     result_str += "Counting mAE: {:.4f}\n".format(result["mae"])
     for i, ae in enumerate(result["ae"]):
