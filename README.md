@@ -1,12 +1,19 @@
-# Update for SeedsLabeling
+# Welcome to SeedQuant repository
+This repository contains the code used for the detection models used in SeedQuant, an automatic computer vision tool to detect and count parasitic seeds.
+You can find more information about SeedQuant [here](https://braguyjm.github.io/SeedQuant2/)
+We also prepared a [user manual](https://drive.google.com/file/d/1CxsVFbQo4XFBYWZ0KF_Ubijhllf4_qoV/view?usp=sharing)  where you can find detailed installation guides for MacOS and Windows, and guides for using SeedQuant 
+
+
 
 ## Environement
 
 `conda env create --file env.yml`
 
 ## Setup Data
-
-In a folder, place your data split into train, validation and test.
+You can download images and annotations files from our [Google Drive] (https://drive.google.com/drive/folders/1ajmmQTHt5FyxZKm7zorIqnhLcejnP8Br).
+We group our data according to the plant name and the annotations strategy.
+Each folder has the following format `Seed_{plant}_Strategy{1|2}`
+Inside of each folder, you can fine **Training**, **Validation**, **Testing**, and **output** subfolders with images and annotation files. 
 
 ## How to train/test (30 runs / all models / strategy 1 and 2 / Striga and Orobanche)
 
