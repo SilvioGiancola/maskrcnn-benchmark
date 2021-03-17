@@ -1,7 +1,7 @@
 # Welcome to SeedQuant repository
 This repository contains the code used for the detection models used in SeedQuant, an automatic computer vision tool to detect and count parasitic seeds.
 You can find more information about SeedQuant [here](https://braguyjm.github.io/SeedQuant2/)
-We also prepared a [user manual](https://drive.google.com/file/d/1CxsVFbQo4XFBYWZ0KF_Ubijhllf4_qoV/view?usp=sharing)  where you can find detailed installation guides for MacOS and Windows, and guides for using SeedQuant 
+We also prepared a [user manual](https://drive.google.com/file/d/1UbzhOQ-PJNIjRSU_nSUAWU5NZHAdge83/view)  where you can find detailed installation guides for MacOS and Windows, and guides for using SeedQuant 
 
 
 
